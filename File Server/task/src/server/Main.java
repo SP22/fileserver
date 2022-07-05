@@ -1,42 +1,36 @@
 package server;
 
-import java.util.HashMap;
-import java.util.Scanner;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.UnknownHostException;
 
 public class Main {
 
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        HashMap<String, String> fileStorage = new HashMap<>();
-        String command = scanner.next();
-        while (!"exit".equals(command)) {
-            String fileName = scanner.next();
-            switch (command) {
-                case "add":
-                    if (fileStorage.containsKey(fileName) || !fileName.matches("(file)([1-9]|10)\\b")) {
-                        System.out.println("Cannot add the file " + fileName);
-                    } else {
-                        fileStorage.put(fileName, fileName);
-                        System.out.println("The file " + fileName + " added successfully");
-                    }
-                    break;
-                case "get":
-                    if (!fileStorage.containsKey(fileName)) {
-                        System.out.println("The file " + fileName + " not found");
-                    } else {
-                        System.out.println("The file " + fileName + " was sent");
-                    }
-                    break;
-                case "delete":
-                    if (!fileStorage.containsKey(fileName)) {
-                        System.out.println("The file " + fileName + " not found");
-                    } else {
-                        fileStorage.remove(fileName);
-                        System.out.println("The file " + fileName + " was deleted");
-                    }
-                    break;
+        String address = "127.0.0.1";
+        int port = 23456;
+        try (
+                ServerSocket server = new ServerSocket(port, 50, InetAddress.getByName(address));
+        ) {
+            System.out.println("Server started!");
+            try (
+                    Socket socket = server.accept();
+                    DataInputStream input = new DataInputStream(socket.getInputStream());
+                    DataOutputStream output = new DataOutputStream(socket.getOutputStream());
+            ) {
+                String inputText = input.readUTF();
+                System.out.println("Received: " + inputText);
+                String outputText = "All files were sent!";
+                output.writeUTF(outputText);
+                System.out.println("Sent: " + outputText);
             }
-            command = scanner.next();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
+
 }
